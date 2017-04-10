@@ -22,6 +22,8 @@ app.use(express.static('public'));
 // body parser config to accept our datatypes
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.use(bodyParser.json());
+
 
 
 ////////////////////
@@ -78,13 +80,11 @@ app.get('/api/books', function (req, res) {
 // get one book
 app.get('/api/books/:id', function (req, res) {
   // find one book by its id
-  console.log('books show', req.params);
-  for(var i=0; i < books.length; i++) {
-    if (books[i]._id === req.params.id) {
-      res.json(books[i]);
-      break; // we found the right book, we can stop searching
-    }
-  }
+  //if no errors find Book by id with findOne
+  var book = db.Book.findOne({ _id: req.params.id }, function(err, book) {
+    if (err) { return console.log('index error: ' + err); }
+    res.json(book);
+  });
 });
 
 // create new book
@@ -92,8 +92,10 @@ app.post('/api/books', function (req, res) {
   // create new book with form data (`req.body`)
   console.log('books create', req.body);
   var newBook = req.body;
-  books.push(newBook);
-  res.json(newBook);
+  console.log(newBook);
+  db.Book.create(newBook, function (err, book) {
+    res.json(book);
+  });
 });
 
 // update book
@@ -103,15 +105,13 @@ app.post('/api/books', function (req, res) {
 app.delete('/api/books/:id', function (req, res) {
   // get book id from url params (`req.params`)
   console.log('books delete', req.params);
-  var bookId = req.params.id;
-  // find the index of the book we want to remove
-  var deleteBookIndex = books.findIndex(function(element, index) {
-    return (element._id === parseInt(req.params.id)); //params are strings
+  db.Book.findOneAndRemove(req.params.id, function(err, book) {
+    var response = {
+        message: "Book successfully deleted",
+        id: book._id
+    };
+    res.send(response);
   });
-  console.log('deleting book with index', deleteBookIndex);
-  var bookToDelete = books[deleteBookIndex];
-  books.splice(deleteBookIndex, 1);
-  res.json(bookToDelete);
 });
 
 
