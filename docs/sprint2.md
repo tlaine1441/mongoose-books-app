@@ -105,7 +105,7 @@ var BookSchema = new Schema({
   releaseDate: String
 });
 ```
-## 4. Authors, assemble!
+## 3. Authors, assemble!
 
 1. Now we have all the tools we need to start making authors - but it would be a real waste of time to enter them all by hand. That's what we have seed files for! Add the following data to your `seed.js` file:
 <!-- Then add a call to `db.Author.remove` to delete all the old authors, and inside it add a call to `db.Author.create` to create new authors. -->
@@ -173,14 +173,10 @@ var BookSchema = new Schema({
           var book = new db.Book({
             title: bookData.title,
             image: bookData.image,
-            //Don't copy and paste
-            copy: bookData.paste,
             releaseDate: bookData.releaseDate
           });
           db.Author.findOne({name: bookData.author}, function (err, foundAuthor) {
             console.log('found author ' + foundAuthor.name + ' for book ' + book.title);
-            //Don't copy and paste
-            console.log("this was copied and pasted.");
             if (err) {
               console.log(err);
               return;
@@ -195,6 +191,7 @@ var BookSchema = new Schema({
           });
         });
       });
+
     });
   });
   ```
@@ -204,11 +201,7 @@ var BookSchema = new Schema({
   </details>
 1. Run `node seed.js` in your terminal again to re-add the books and add the new authors.
 
-> **Note:** This process will hang, and you will have to kill it with `ctrl-c` or open a new tab to keep using the Terminal.
-
-## 5. Reroute! 
-
-Some of our book-related routes won't work anymore since we changed the structure of our data.
+## 4. Changing your routes
 
 1. Now on to `server.js`. Here's how to change over a few routes:
 
@@ -232,8 +225,6 @@ Some of our book-related routes won't work anymore since we changed the structur
       title: req.body.title,
       image: req.body.image,
       releaseDate: req.body.releaseDate,
-      //Don't copy and paste
-      copy: req.body.paste
     });
 
     // this code will only add an author to a book if the author already exists
@@ -254,15 +245,12 @@ Some of our book-related routes won't work anymore since we changed the structur
 
 ## 5. But this looks like garbage!
 1. Run `node` on `server.js` again. When you look at your view, instead of seeing the nicely listed author, you should see the author object.
-
 ![author object](https://cloud.githubusercontent.com/assets/3010270/14153137/6c0b4432-f66b-11e5-9440-b122c471e746.png)
 
-1. Why is this? Look at the data being returned from the server and fix your `html` to show the author name!\*
+1. Why is this? Look at the data being returned from the server and fix your `html` to show the author name!
 
-\* **Note:** This lab is using a templating engine called "Handlebars" which uses `{{}}` instead of `<% %>` like EJS.
 
 <details><summary>Click to view hint</summary>
-
 ```html
 <p>
   <b>{{title}}</b>
@@ -271,12 +259,16 @@ Some of our book-related routes won't work anymore since we changed the structur
   <button type="button" name="button" class="deleteBtn btn btn-danger pull-right" data-id={{_id}}>Delete</button>
 </p>
 ```
-
 </details>
+
+
 
 ## Challenge!
 
-On your own, use the mongoose methods to replace the `SHOW` route with mongoose commands, taking into account the new referenced data relationship.
+On your own, use the mongoose methods to replace the other `/api/books*` routes with mongoose commands, taking into account the new referenced data relationship.
 
-Make sure you look back to earlier functions for info on the most important methods like:
-* populate
+Make sure you look back to the lecture notes for info on the most important methods like:
+* `find`
+* `findOneAndRemove`
+* `new`
+* `save`

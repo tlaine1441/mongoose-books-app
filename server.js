@@ -21,6 +21,7 @@ app.use(express.static('public'));
 
 // body parser config to accept our datatypes
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 app.use(bodyParser.json());
 
@@ -63,43 +64,55 @@ app.use(bodyParser.json());
 
 // define a root route: localhost:3000/
 app.get('/', function (req, res) {
-  res.sendFile('views/index.html' , { root : __dirname});
+  res.sendFile('views/index.html' , { root : __dirname });
 });
 
 // get all books
 app.get('/api/books', function (req, res) {
   // send all books as JSON response
-  db.Book.find(function(err, books) {
-    //if error return log of that error
-    if (err) { return console.log('index error: ' + err); }
-    // if no error return the books from database to page as json
-    res.json(books);
-  });
+  db.Book.find()
+    .populate('author')
+    .exec(function(err, books){
+      if (err) { return console.log("index error: " + err); }
+      res.json(books);
+    });
 });
 
 // get one book
 app.get('/api/books/:id', function (req, res) {
   // find one book by its id
-  //if no errors find Book by id with findOne
-  var book = db.Book.findOne({ _id: req.params.id }, function(err, book) {
-    if (err) { return console.log('index error: ' + err); }
-    res.json(book);
-  });
+  db.Book.findById(req.params.id)
+    .populate('author')
+    .exec(function(err, book) {
+      if (err) { return console.log("show error: " + err); }
+      res.json(book);
+    });
 });
 
 // create new book
 app.post('/api/books', function (req, res) {
   // create new book with form data (`req.body`)
-  console.log('books create', req.body);
-  var newBook = req.body;
-  console.log(newBook);
-  db.Book.create(newBook, function (err, book) {
-    res.json(book);
+  var newBook = new db.Book({
+    title: req.body.title,
+    image: req.body.image,
+    releaseDate: req.body.releaseDate,
   });
-});
 
-// update book
-// app.put('/api/books/:id', controllers.books.update);
+  // this code will only add an author to a book if the author already exists
+  console.log("author :" + req.body.author);
+  db.Author.findOne({name: req.body.author}, function(err, author){
+    newBook.author = author;
+    // add newBook to database
+    newBook.save(function(err, book){
+      if (err) {
+        return console.log("create error: " + err);
+      }
+      console.log("created ", book.title);
+      res.json(book);
+    });
+  });
+
+});
 
 // delete book
 app.delete('/api/books/:id', function (req, res) {
